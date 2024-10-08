@@ -35,5 +35,10 @@ Run the script:
 
 This will generate `output.json` with interaction details and non-participants.
 
-To visualize the data, open `index.html` in your browser.
+To visualize the data, spin up a small web server with:
+
+`python -m http.server 8000`
+
+and head to localhost:8000 to see tha data
+
 That's it! This should give you a quick idea of who spoke up and who stayed quiet during the meeting.
