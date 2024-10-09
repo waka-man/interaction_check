@@ -83,3 +83,9 @@ th, td {
 .centered {
     text-align: center;
 }
+.student-chart-container {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+}

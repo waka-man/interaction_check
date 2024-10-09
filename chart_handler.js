@@ -41,6 +41,9 @@ function renderNavLinks(data) {
         }
     }
 
+    // Link for special students
+    links.push(`<a href="?page=special_students">Special Students</a>`);
+
     navLinks.innerHTML = links.join(" | ");
 }
 
@@ -65,6 +68,11 @@ function renderPageData(data) {
         nonParticipants = data.by_date[page].non_participants || [];
         totalParticipants = data.by_date[page].total_participants || 0;
         totalNonParticipants = data.by_date[page].total_non_participants || 0;
+    } else if (page === "special_students") {
+        document.getElementById("page-title").innerText = "Special Students Data";
+        displaySpecialStudentsTable(data.special_students);
+        drawSpecialStudentsCharts(data.special_students);
+        return;
     } else {
         document.getElementById("page-title").innerText = "Page Not Found";
         return;
@@ -73,12 +81,12 @@ function renderPageData(data) {
     console.log("Total Participants:", totalParticipants);
     console.log("Total Non-Participants:", totalNonParticipants);
 
-    displayTable(interactionCounts, nonParticipants);
+    displayInteractionTable(interactionCounts, nonParticipants);
     drawCharts(interactionCounts, nonParticipants, participationOverTime, totalParticipants, totalNonParticipants);
 }
 
 // Renders the interaction table and non-participants list
-function displayTable(interactionCounts, nonParticipants) {
+function displayInteractionTable(interactionCounts, nonParticipants) {
     const tableContainer = document.getElementById('interaction-table');
     if (!tableContainer) {
         console.error("Interaction table container not found");
@@ -106,8 +114,7 @@ function displayTable(interactionCounts, nonParticipants) {
             <td>${count}</td>
         </tr>`;
     }
-    html += `</tbody>
-    </table>`;
+    html += `</tbody></table>`;
 
     tableContainer.innerHTML = html;
 
@@ -123,6 +130,38 @@ function displayTable(interactionCounts, nonParticipants) {
         nonParticipantsHtml += `<li>${attendee}</li>`;
     }
     nonParticipantsList.innerHTML = nonParticipantsHtml;
+}
+
+// Displays a table of special students and their participation
+function displaySpecialStudentsTable(specialStudents) {
+    const tableContainer = document.getElementById('interaction-table');
+    if (!tableContainer) {
+        console.error("Interaction table container not found");
+        return;
+    }
+
+    let html = `<table>
+        <thead>
+            <tr>
+                <th>Special Student</th>
+                <th>Sessions Attended</th>
+                <th>Total Interactions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    for (let [student, sessions] of Object.entries(specialStudents)) {
+        const totalInteractions = Object.values(sessions).reduce((acc, val) => acc + val, 0);
+        html += `<tr>
+            <td>${student}</td>
+            <td>${Object.keys(sessions).length}</td>
+            <td>${totalInteractions}</td>
+        </tr>`;
+    }
+
+    html += `</tbody></table>`;
+
+    tableContainer.innerHTML = html;
 }
 
 // Draws the charts for interaction counts, participation, and over time
@@ -170,8 +209,6 @@ function drawCharts(interactionCounts, nonParticipants, participationOverTime, t
     // Pie Chart for Participation
     const participationChartCtx = document.getElementById('participationChart')?.getContext('2d');
     if (participationChartCtx) {
-        console.log("Initializing Pie Chart with values - Participants:", totalParticipants, "Non-Participants:", totalNonParticipants);
-
         window.participationChart = new Chart(participationChartCtx, {
             type: 'pie',
             data: {
@@ -249,4 +286,40 @@ function drawCharts(interactionCounts, nonParticipants, participationOverTime, t
             }
         });
     }
+}
+
+// Draws charts specifically for special students
+function drawSpecialStudentsCharts(specialStudents) {
+    const specialStudentChartCtx = document.getElementById('specialStudentChart')?.getContext('2d');
+    if (!specialStudentChartCtx) {
+        console.error("Special students chart container not found");
+        return;
+    }
+
+    const studentNames = Object.keys(specialStudents);
+    const totalInteractions = studentNames.map(student => {
+        return Object.values(specialStudents[student]).reduce((acc, val) => acc + val, 0);
+    });
+
+    window.specialStudentChart = new Chart(specialStudentChartCtx, {
+        type: 'bar',
+        data: {
+            labels: studentNames,
+            datasets: [{
+                label: 'Total Interactions',
+                data: totalInteractions,
+                backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }

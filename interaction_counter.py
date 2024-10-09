@@ -12,6 +12,14 @@ transcript_files = config.get('transcript_files', [])
 chat_files = config.get('chat_files', [])
 teacher_name = config.get('teacher_name', 'Teacher Name')
 
+# Load special students from special_students.txt
+try:
+    with open('special_students.txt', 'r', encoding='utf-8') as special_students_file:
+        special_students = [line.strip() for line in special_students_file if line.strip()]
+except FileNotFoundError:
+    print("File not found: special_students.txt")
+    special_students = []
+
 # Normalize attendee names for consistent matching
 def normalize_name(name):
     return ' '.join(name.lower().strip().split())
@@ -28,6 +36,7 @@ def extract_date_from_first_line(content):
 interaction_counts = defaultdict(int)
 participation_over_time = defaultdict(set)
 all_attendees = set()
+special_students_data = defaultdict(lambda: defaultdict(int))
 
 # Data by date
 data_by_date = {}
@@ -99,71 +108,40 @@ for transcript_file, chat_file in zip(transcript_files, chat_files):
                     participation_over_time[current_time].add(speaker)
                     date_participation_over_time[current_time].add(speaker)
 
-    # Process the corresponding chat file
-    try:
-        with open(chat_file, 'r', encoding='utf-8') as f:
-            chat_lines = f.readlines()
-    except FileNotFoundError:
-        print(f"File not found: {chat_file}")
-        continue
-
-    chat_timestamp_pattern = re.compile(r'^\d{2}:\d{2}:\d{2}\.\d{3},\d{2}:\d{2}:\d{2}\.\d{3}$')
-    for i in range(len(chat_lines)):
-        line = chat_lines[i].strip()
-        if chat_timestamp_pattern.match(line):
-            if i + 1 < len(chat_lines):
-                chat_message = chat_lines[i + 1].strip()
-                if ':' in chat_message:
-                    speaker_part, _ = chat_message.split(':', 1)
-                    speaker = normalize_name(speaker_part)
-                    if speaker == normalized_teacher_name:
-                        continue
-                    if speaker in normalized_attendees:
-                        interaction_counts[speaker] += 1
-                        date_interaction_counts[speaker] += 1
-                        chat_time = line[:8]  # Only keep the time portion (e.g., '00:00:25')
-                        participation_over_time[chat_time].add(speaker)
-                        date_participation_over_time[chat_time].add(speaker)
+                # Check if the speaker is a special student
+                for special_student in special_students:
+                    if any(name_part in speaker for name_part in special_student.lower().split()):
+                        special_students_data[special_student][meeting_date] += 1
 
     # Aggregate participation data by date
-    interval_duration = timedelta(minutes=10)
-    start_time = datetime.strptime("00:00:00", "%H:%M:%S")
-    date_aggregated_participation = defaultdict(set)
+    participants = set(date_interaction_counts.keys())
+    non_participants = [attendee for attendee in attendees_list if normalize_name(attendee) not in participants]
 
-    for time_str, speakers in date_participation_over_time.items():
-        time_obj = datetime.strptime(time_str, "%H:%M:%S")
-        interval_start = start_time + ((time_obj - start_time) // interval_duration) * interval_duration
-        interval_label = interval_start.strftime("%H:%M:%S")
-        date_aggregated_participation[interval_label].update(speakers)
-
-    # Convert sets to counts for participation over time
-    date_participation_over_time_counts = {
-        interval: len(participants) for interval, participants in date_aggregated_participation.items()
-    }
-
-    # Store the data by date
     data_by_date[meeting_date] = {
         "interaction_counts": dict(date_interaction_counts),
-        "participation_over_time": date_participation_over_time_counts,
-        "non_participants": [
-            attendee for attendee in attendees_list if normalize_name(attendee) not in date_interaction_counts
-        ],
+        "participation_over_time": {
+            interval: len(participants)
+            for interval, participants in date_participation_over_time.items()
+        },
+        "non_participants": non_participants,
+        "total_participants": len(participants),
+        "total_non_participants": len(non_participants)
     }
 
 # Aggregate participation over all intervals
 aggregated_participation = defaultdict(set)
 for time_str, speakers in participation_over_time.items():
     time_obj = datetime.strptime(time_str, "%H:%M:%S")
+    interval_duration = timedelta(minutes=10)
+    start_time = datetime.strptime("00:00:00", "%H:%M:%S")
     interval_start = start_time + ((time_obj - start_time) // interval_duration) * interval_duration
     interval_label = interval_start.strftime("%H:%M:%S")
     aggregated_participation[interval_label].update(speakers)
 
 # Convert sets to counts for participation over time
-participation_over_time_counts = {
-    interval: len(participants) for interval, participants in aggregated_participation.items()
-}
 participation_over_time_counts = OrderedDict(
-    sorted(participation_over_time_counts.items(), key=lambda t: datetime.strptime(t[0], "%H:%M:%S"))
+    sorted({interval: len(participants) for interval, participants in aggregated_participation.items()}.items(),
+           key=lambda t: datetime.strptime(t[0], "%H:%M:%S"))
 )
 
 # Create a list of non-participants
@@ -178,22 +156,11 @@ output_data = {
         "total_participants": len(interaction_counts),
         "total_non_participants": len(non_participants)
     },
-    "by_date": {}
-}
-
-# Add data by date
-for meeting_date, meeting_data in data_by_date.items():
-    participants = set(normalize_name(name) for name in meeting_data["interaction_counts"].keys())
-    non_participants = [
-        attendee for attendee in all_attendees if normalize_name(attendee) not in participants
-    ]
-    output_data["by_date"][meeting_date] = {
-        "interaction_counts": meeting_data["interaction_counts"],
-        "participation_over_time": meeting_data["participation_over_time"],
-        "non_participants": non_participants,
-        "total_participants": len(participants),
-        "total_non_participants": len(non_participants)
+    "by_date": data_by_date,
+    "special_students": {
+        student: dict(attendance) for student, attendance in special_students_data.items()
     }
+}
 
 with open('output.json', 'w', encoding='utf-8') as f:
     json.dump(output_data, f, ensure_ascii=False, indent=4)

@@ -1,5 +1,8 @@
 {
-    "transcript_files": ["transcript_1.txt", "transcript_2.txt", "transcript_3.txt", "transcript_4.txt", "transcript_5.txt", "transcript_6.txt"],
+    "transcript_files": ["transcript_1.txt", "transcript_2.txt", "transcript_3.txt", "transcript_4.txt", 
+                        "transcript_5.txt", "transcript_6.txt", "transcript_7.txt", "transcript_8.txt", 
+                        "transcript_9.txt", "transcript_10.txt"],
     "teacher_name": "Wakuma Tekalign Debela",
-    "chat_files": ["chat_1.txt", "chat_2.txt", "chat_3.txt", "chat_4.txt", "chat_5.txt", "chat_6.txt"]
+    "chat_files": ["chat_1.txt", "chat_2.txt", "chat_3.txt", "chat_4.txt", "chat_5.txt", "chat_6.txt",
+                   "chat_7.txt", "chat_8.txt", "chat_9.txt", "chat_10.txt"]
 }
