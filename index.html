@@ -5,31 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeting Interaction Summary</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="chart_handler.js" defer></script>
 </head>
 <body>
-    <h1>Meeting Interaction Summary</h1>
-    <div id="interaction-table"></div>
+    <header>
+        <h1>Meeting Interaction Summary</h1>
+        <nav id="nav-links"></nav>
+    </header>
     
-    <div class="charts-grid">
-        <div class="chart-box">
-            <canvas id="interactionChart"></canvas>
+    <main>
+        <div id="summary-container">
+            <h2 id="page-title">Aggregate Data</h2>
+            <div id="charts-container">
+                <div class="chart-wrapper">
+                    <canvas id="interactionChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="participationChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="horizontalInteractionChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="participationOverTimeChart"></canvas>
+                </div>
+            </div>
+            <div id="interaction-table-container">
+                <h3>Interaction Table</h3>
+                <div id="interaction-table"></div>
+            </div>
+            <div id="non-participants">
+                <h3>Non-Participants</h3>
+                <ul id="nonParticipantsList"></ul>
+            </div>
         </div>
-        <div class="chart-box">
-            <canvas id="participationChart"></canvas>
-        </div>
-        <div class="chart-box">
-            <canvas id="horizontalInteractionChart"></canvas>
-        </div>
-        <div class="chart-box">
-            <canvas id="participationOverTimeChart"></canvas>
-        </div>
-    </div>
+    </main>
 
-    <div class="non-participants centered">
-        <h2>Attendees Who Did Not Interact</h2>
-        <ul id="non-participants-list"></ul>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="chart_handler.js"></script>
 </body>
 </html>

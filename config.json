@@ -1,5 +1,5 @@
 {
-    "transcript_file": "the_transcript.txt",
+    "transcript_files": ["transcript_1.txt", "transcript_2.txt", "transcript_3.txt", "transcript_4.txt", "transcript_5.txt", "transcript_6.txt"],
     "teacher_name": "Wakuma Tekalign Debela",
-    "chat_file": "the_chat.txt"
+    "chat_files": ["chat_1.txt", "chat_2.txt", "chat_3.txt", "chat_4.txt", "chat_5.txt", "chat_6.txt"]
 }
